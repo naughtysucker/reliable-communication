@@ -20,6 +20,7 @@ enum reliable_communication_error_t
     reliable_communication_error_unknown,
     reliable_communication_error_overflow,
     reliable_communication_error_received_before,
+    reliable_communication_error_got_one_packet,
     reliable_communication_error_got_one_response,
     reliable_communication_error_end,
 };
@@ -28,6 +29,12 @@ enum reliable_communication_packet_record_status_t
 {
     reliable_communication_packet_have_not_received,
     reliable_communication_packet_received_already,
+};
+
+enum reliable_communiaction_response_t
+{
+    reliable_communication_response_received,
+    reliable_communication_response_overflow,
 };
 
 enum reliable_communication_error_t reliable_communication_fifo_initialize(struct reliable_communication_t *ins, size_t buffer_size, void *buffer);
