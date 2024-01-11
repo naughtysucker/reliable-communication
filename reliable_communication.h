@@ -21,6 +21,7 @@ enum reliable_communication_error_t
     reliable_communication_error_overflow,
     reliable_communication_error_received_before,
     reliable_communication_error_got_one_response,
+    reliable_communication_error_end,
 };
 
 enum reliable_communication_packet_record_status_t
