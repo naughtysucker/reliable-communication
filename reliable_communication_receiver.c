@@ -36,18 +36,18 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
                 continue;
             }
 
-            enum reliable_communiaction_response_t response = reliable_communication_response_received;
+            enum reliable_communication_response_t response_data = reliable_communication_response_received;
             if (index < receiver->recorder.first_packet_index)
             {
             }
             else if (index >= (receiver->recorder.first_packet_index + buffer_size))
             {
-                response = reliable_communication_response_overflow;
+                response_data = reliable_communication_response_overflow;
             }
             else
             {
 				uint32_t record_data;
-				err = reliable_communication_get_record(&sender->recorder, index, &record_data);
+				err = reliable_communication_get_record(&receiver->recorder, index, &record_data);
                 assert(err == reliable_communication_error_no);
 				if (record_data == reliable_communication_packet_have_not_received)
 				{
@@ -56,13 +56,13 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
 						receiver->callback(index, object);
 					}
 				}
-                err = reliable_communication_record_received(receiver, index);
+                err = reliable_communication_record_received(&receiver->recorder, index);
                 assert(err == reliable_communication_error_no);
 
-                err = reliable_communication_walk(&receiver->recorder, order_callback, object);
+                err = reliable_communication_walk(&receiver->recorder, receiver->order_callback, object);
                 assert(err == reliable_communication_error_no);
             }
-            receiver->send_response(index, response, object);
+            receiver->send_response(index, response_data, object);
         }
     }
 

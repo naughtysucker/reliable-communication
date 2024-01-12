@@ -31,7 +31,7 @@ enum reliable_communication_packet_record_status_t
     reliable_communication_packet_received_already,
 };
 
-enum reliable_communiaction_response_t
+enum reliable_communication_response_t
 {
     reliable_communication_response_received,
     reliable_communication_response_overflow,
@@ -41,9 +41,9 @@ typedef void (*reliable_communication_new_packet_received_callback)(uint32_t ind
 typedef void (*reliable_communication_new_packet_received_order_callback)(uint32_t index, void *object);
 
 enum reliable_communication_error_t reliable_communication_fifo_initialize(struct reliable_communication_t *ins, size_t buffer_size, void *buffer);
-enum reliable_communication_error_t reliable_communication_walk(struct reliable_communication_t *ins, reliable_communication_new_packet_received_order_callback order_callback);
+enum reliable_communication_error_t reliable_communication_walk(struct reliable_communication_t *ins, reliable_communication_new_packet_received_order_callback order_callback, void *object);
 enum reliable_communication_error_t reliable_communication_record_received(struct reliable_communication_t *ins, uint32_t index);
-enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t **record_data);
+enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t *record_data);
 enum reliable_communication_error_t reliable_communication_get_buffer_size(struct reliable_communication_t *ins, size_t *buffer_size);
 
 #ifdef __cplusplus

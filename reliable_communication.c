@@ -18,17 +18,18 @@ func_end:
     return func_res;
 }
 
-enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t **record_data_ptr)
+enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t *record_data_ptr)
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
+    naughty_exception res;
 
 	if (index < ins->first_packet_index)
 	{
-		record_data_ptr = reliable_communication_record_received;
+		*record_data_ptr = reliable_communication_packet_received_already;
 		goto func_end;
 	}
 
-    naughty_exception res = naughty_fifo_get_data(&ins->fifo, index - ins->first_packet_index, record_data_ptr);
+    res = naughty_fifo_get_data(&ins->fifo, index - ins->first_packet_index, (void **)&record_data_ptr);
     if (res != naughty_exception_no)
     {
         if (res == naughty_exception_outofrange)
@@ -49,7 +50,7 @@ enum reliable_communication_error_t reliable_communication_fifo_initialize(struc
     naughty_exception res = naughty_fifo_initialize(&ins->fifo, sizeof(uint32_t), buffer_size, buffer);
     if (res != naughty_exception_no)
     {
-        func_res = naughty_exception_unknown;
+        func_res = reliable_communication_error_unknown;
         goto func_end;
     }
     for (size_t i = 0; i < buffer_size; i++)
@@ -68,7 +69,7 @@ enum reliable_communication_error_t reliable_communication_walk(struct reliable_
     uint32_t *data_ptr = NULL;
     while (1)
     {
-        naughty_exception res = naughty_fifo_get_front(&ins->fifo, &data_ptr);
+        naughty_exception res = naughty_fifo_get_front(&ins->fifo, (void **)&data_ptr);
         assert(res == naughty_exception_no);
         if ((enum reliable_communication_packet_record_status_t) * data_ptr == reliable_communication_packet_received_already)
         {
