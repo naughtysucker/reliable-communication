@@ -7,7 +7,7 @@ extern "C"
 {
 #endif
 
-typedef enum reliable_communication_error_t (*reliable_communication_get_receiver_received_response_func_t)(uint32_t *index, void *object);
+typedef enum reliable_communication_error_t (*reliable_communication_get_receiver_received_response_func_t)(uint32_t *index, uint32_t response, void *object);
 typedef enum reliable_communication_error_t (*reliable_communication_send_packet_func_t)(uint32_t index, void *object);
 
 struct reliable_communication_sender_t

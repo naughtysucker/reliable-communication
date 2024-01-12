@@ -46,14 +46,20 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
             }
             else
             {
-                if (receiver->callback)
-                {
-                    receiver->callback(index, object);
-                }
+				uint32_t record_data;
+				err = reliable_communication_get_record(&sender->recorder, index, &record_data);
+                assert(err == reliable_communication_error_no);
+				if (record_data == reliable_communication_packet_have_not_received)
+				{
+					if (receiver->callback && object)
+					{
+						receiver->callback(index, object);
+					}
+				}
                 err = reliable_communication_record_received(receiver, index);
                 assert(err == reliable_communication_error_no);
 
-                err = reliable_communication_walk(&receiver->recorder);
+                err = reliable_communication_walk(&receiver->recorder, order_callback, object);
                 assert(err == reliable_communication_error_no);
             }
             receiver->send_response(index, response, object);

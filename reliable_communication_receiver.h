@@ -7,8 +7,6 @@ extern "C"
 {
 #endif
 
-typedef void (*reliable_communication_new_packet_received_callback)(uint32_t index, void *object);
-typedef void (*reliable_communication_new_packet_received_order_callback)(uint32_t index, void *object);
 typedef enum reliable_communication_error_t (*reliable_communication_receive_packet_func_t)(uint32_t *index, void *object);
 typedef enum reliable_communication_error_t (*reliable_communication_send_response_func_t)(uint32_t index, enum reliable_communication_response_t response_data, void *object);
 

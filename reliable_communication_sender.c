@@ -44,10 +44,22 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
             uint32_t record_data;
             while (1)
             {
-                err = sender->get_recved_response(&recved_index, object);
+				uint32_t response = 0;
+                err = sender->get_recved_response(&recved_index, &response, object);
                 if (err == reliable_communication_error_got_one_response)
                 {
-                    err = reliable_communication_record_received(&sender->recorder, recved_index);
+					if (response == reliable_communication_response_received)
+					{
+						err = reliable_communication_record_received(&sender->recorder, recved_index);
+						if (err != reliable_communication_error_no)
+						{
+							continue;
+						}
+					}
+					else if (response == reliable_communication_response_overflow)
+					{
+						// Todo: tune send buffer size
+					}
                 }
                 else if (err != reliable_communication_error_no)
                 {
@@ -59,7 +71,7 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
                     break;
                 }
             }
-            err = reliable_communication_get_record(&sender->recorder, i, &record_data);
+            err = reliable_communication_get_record(&sender->recorder, i + sender->recorder.first_packet_index, &record_data);
             assert(err == reliable_communication_error_no);
             if (record_data == reliable_communication_packet_have_not_received)
             {
@@ -76,7 +88,7 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
                 }
             }
         }
-        err = reliable_communication_walk(&sender->recorder);
+        err = reliable_communication_walk(&sender->recorder, NULL, NULL);
         if (end_index)
         {
             if (sender->recorder.first_packet_index == end_index)
