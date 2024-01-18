@@ -51,7 +51,7 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
                 assert(err == reliable_communication_error_no);
 				if (record_data == reliable_communication_packet_have_not_received)
 				{
-					if (receiver->callback && object)
+					if (receiver->callback)
 					{
 						receiver->callback(index, object);
 					}

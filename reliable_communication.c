@@ -29,7 +29,8 @@ enum reliable_communication_error_t reliable_communication_get_record(struct rel
 		goto func_end;
 	}
 
-    res = naughty_fifo_get_data(&ins->fifo, index - ins->first_packet_index, (void **)&record_data_ptr);
+    void *data_ptr;
+    res = naughty_fifo_get_data(&ins->fifo, index - ins->first_packet_index, &data_ptr);
     if (res != naughty_exception_no)
     {
         if (res == naughty_exception_outofrange)
@@ -38,6 +39,8 @@ enum reliable_communication_error_t reliable_communication_get_record(struct rel
             goto func_end;
         }
     }
+
+    *record_data_ptr = *(uint32_t *)data_ptr;
 
 func_end:
     return func_res;
@@ -73,7 +76,7 @@ enum reliable_communication_error_t reliable_communication_walk(struct reliable_
         assert(res == naughty_exception_no);
         if ((enum reliable_communication_packet_record_status_t) * data_ptr == reliable_communication_packet_received_already)
         {
-			if (order_callback && object)
+			if (order_callback)
 			{
 				order_callback(ins->first_packet_index, object);
 			}
