@@ -26,17 +26,21 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
 
-    void *packet = NULL;
-    size_t packet_size = 0;
     uint32_t end_index = 0;
+    size_t tuned_buffer_size = 0;
+
+    size_t buffer_size;
+    enum reliable_communication_error_t err = reliable_communication_get_buffer_size(&sender->recorder, &buffer_size);
+    if (err != reliable_communication_error_no)
+    {
+        goto func_end;
+    }
 
     while (1)
     {
-        size_t buffer_size;
-        enum reliable_communication_error_t err = reliable_communication_get_buffer_size(&sender->recorder, &buffer_size);
-        if (err != reliable_communication_error_no)
+        if (tuned_buffer_size)
         {
-            continue;
+            buffer_size = tuned_buffer_size;
         }
         for (uint32_t i = 0; i < buffer_size; i++)
         {
@@ -58,7 +62,7 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
 					}
 					else if (response == reliable_communication_response_overflow)
 					{
-						// Todo: tune send buffer size
+                        tuned_buffer_size = recved_index - sender->recorder.first_packet_index;
 					}
                 }
                 else if (err != reliable_communication_error_no)

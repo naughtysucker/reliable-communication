@@ -18,8 +18,8 @@ uint32_t loss_threshold = 50;
 struct reliable_communication_sender_t g_sender;
 struct reliable_communication_receiver_t g_receiver;
 
-uint32_t g_sender_buffer[1] = {0};
-uint32_t g_receiver_buffer[1] = {0};
+uint32_t g_sender_buffer[1000] = {0};
+uint32_t g_receiver_buffer[100] = {0};
 
 std::chrono::steady_clock::time_point start_time;
 
