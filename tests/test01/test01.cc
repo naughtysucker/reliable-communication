@@ -33,6 +33,8 @@ std::deque<std::pair<uint32_t, uint32_t>> response_channel;
 // typedef enum reliable_communication_error_t (*reliable_communication_get_receiver_received_response_func_t)(uint32_t *index, uint32_t *response, void *object);
 // typedef enum reliable_communication_error_t (*reliable_communication_send_packet_func_t)(uint32_t index, void *object);
 
+int32_t g_send_count = 0;
+
 // for sender
 enum reliable_communication_error_t test_get_received_response(uint32_t *index, uint32_t *response, void *object)
 {
@@ -57,6 +59,8 @@ func_end:
 
 enum reliable_communication_error_t test_send_packet(uint32_t index, void *object)
 {
+    g_send_count++;
+
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
     size_t size = 0;
 
@@ -160,6 +164,18 @@ void test_ordered_recved_callback(uint32_t index, void *object)
     }
 }
 
+// yield condition
+
+int32_t test_if_yield(void *obj)
+{
+    if (g_send_count > 100000)
+    {
+        g_send_count = 0;
+        return 1;
+    }
+    return 0;
+}
+
 // main 
 
 int main(int argc, char **argv, char **env)
@@ -175,7 +191,13 @@ int main(int argc, char **argv, char **env)
 
     start_time = std::chrono::steady_clock::now();
 
-    reliable_communication_sender_send_packets(&g_sender, NULL);
+    int i = 0;
+    while (1)
+    {
+        reliable_communication_sender_send_packets(&g_sender, NULL, test_if_yield, NULL);
+        printf("loop %d\n", i);
+        i++;
+    }
 
     return 0;
 }

@@ -46,6 +46,8 @@ enum reliable_communication_error_t reliable_communication_record_received(struc
 enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t *record_data);
 enum reliable_communication_error_t reliable_communication_get_buffer_size(struct reliable_communication_t *ins, size_t *buffer_size);
 
+typedef int32_t (*reliable_communication_yield_condition_func_t)(void *object);
+
 #ifdef __cplusplus
 }
 #endif

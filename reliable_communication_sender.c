@@ -22,7 +22,7 @@ func_end:
     return func_res;
 }
 
-enum reliable_communication_error_t reliable_communication_sender_send_packets(struct reliable_communication_sender_t *sender, void *object)
+enum reliable_communication_error_t reliable_communication_sender_send_packets(struct reliable_communication_sender_t *sender, void *object, reliable_communication_yield_condition_func_t yield_condition_func, void *yield_condition_object)
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
 
@@ -38,6 +38,15 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
 
     while (1)
     {
+        if (yield_condition_func)
+        {
+            int32_t if_yield = yield_condition_func(yield_condition_object);
+            if (if_yield)
+            {
+                break;
+            }
+        }
+
         if (tuned_buffer_size)
         {
             buffer_size = tuned_buffer_size;

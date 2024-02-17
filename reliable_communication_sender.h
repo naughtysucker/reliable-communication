@@ -18,7 +18,7 @@ struct reliable_communication_sender_t
 };
 
 enum reliable_communication_error_t reliable_communication_sender_initialize(struct reliable_communication_sender_t *sender, size_t buffer_size, void *buffer, reliable_communication_get_receiver_received_response_func_t get_recved_response, reliable_communication_send_packet_func_t send_packet);
-enum reliable_communication_error_t reliable_communication_sender_send_packets(struct reliable_communication_sender_t *sender, void *object);
+enum reliable_communication_error_t reliable_communication_sender_send_packets(struct reliable_communication_sender_t *sender, void *object, reliable_communication_yield_condition_func_t yield_condition_func, void *yield_condition_object);
 
 #ifdef __cplusplus
 }
