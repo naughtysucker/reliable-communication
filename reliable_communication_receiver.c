@@ -49,6 +49,11 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
                 {
                     break;
                 }
+                func_res = receiver->send_reset_response(object);
+                if (func_res != reliable_communication_error_no)
+                {
+                    break;
+                }
             }
         }
 
