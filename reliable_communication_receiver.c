@@ -1,6 +1,6 @@
 #include "reliable_communication_receiver.h"
 
-enum reliable_communication_error_t reliable_communication_receiver_initialize(struct reliable_communication_receiver_t *receiver, size_t buffer_size, void *buffer, reliable_communication_send_response_func_t send_response, reliable_communication_receive_packet_func_t receive_packet, reliable_communication_new_packet_received_callback callback, reliable_communication_new_packet_received_order_callback order_callback)
+enum reliable_communication_error_t reliable_communication_receiver_initialize(struct reliable_communication_receiver_t *receiver, size_t buffer_size, void *buffer, reliable_communication_send_response_func_t send_response, reliable_communication_receive_packet_func_t receive_packet, reliable_communication_receive_reset_func_t receive_reset_func, reliable_communication_send_reset_response_func_t send_reset_response_func, reliable_communication_new_packet_received_callback callback, reliable_communication_new_packet_received_order_callback order_callback)
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
 
@@ -14,18 +14,44 @@ enum reliable_communication_error_t reliable_communication_receiver_initialize(s
     receiver->order_callback = order_callback;
     receiver->receive_packet = receive_packet;
     receiver->send_response = send_response;
+    receiver->receive_reset_packet = receive_reset_func;
+    receiver->send_reset_response = send_reset_response_func;
 
 func_end:
     return func_res;
 }
 
-enum reliable_communication_error_t reliable_communication_receiver_receive(struct reliable_communication_receiver_t *receiver, void *object)
+enum reliable_communication_error_t reliable_communication_receiver_receive(struct reliable_communication_receiver_t *receiver, void *object, reliable_communication_yield_condition_func_t yield_condition_func, void *yield_condition_object)
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
 
     while (1)
     {
         uint32_t index = 0;
+
+        if (yield_condition_func)
+        {
+            int32_t if_yield = yield_condition_func(yield_condition_object);
+            if (if_yield)
+            {
+                func_res = reliable_communication_error_no;
+                break;
+            }
+        }
+
+        if (receiver->receive_reset_packet)
+        {
+            func_res = receiver->receive_reset_packet(object);
+            if (func_res == reliable_communication_error_got_one_packet)
+            {
+                func_res = reliable_communication_reset_recorder(&receiver->recorder);
+                if (func_res != reliable_communication_error_no)
+                {
+                    break;
+                }
+            }
+        }
+
         enum reliable_communication_error_t err = receiver->receive_packet(&index, object);
         if (err == reliable_communication_error_got_one_packet)
         {

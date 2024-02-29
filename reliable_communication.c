@@ -124,3 +124,29 @@ func_end:
 #ifdef __cplusplus
 }
 #endif
+
+enum reliable_communication_error_t reliable_communication_reset_recorder(struct reliable_communication_t *recorder)
+{
+    enum reliable_communication_error_t func_res = reliable_communication_error_no;
+
+    recorder->first_packet_index = 0;
+
+    size_t buffer_size = 0;
+
+    enum naughty_exception get_size_res = naughty_fifo_get_buffer_size(&recorder->fifo, &buffer_size);
+
+    if (get_size_res != naughty_exception_no)
+    {
+        func_res = reliable_communication_error_unknown;
+        goto func_end;
+    }
+
+    for (size_t i = 0; i < buffer_size; i++)
+    {
+        uint32_t data = reliable_communication_packet_have_not_received;
+        enum naughty_exception res = naughty_fifo_set_data(&recorder->fifo, i, &data);
+        assert(res == naughty_exception_no);
+    }
+func_end:
+    return func_res;
+}

@@ -66,6 +66,12 @@ enum reliable_communication_error_t test_send_packet(uint32_t index, void *objec
 
     uint32_t ran_num = uid(re);
 
+    if (index == 1000000)
+    {
+        func_res = reliable_communication_error_overflow;
+        goto func_end;
+    }
+
     if (ran_num < loss_threshold)
     {
         goto func_end;
@@ -151,14 +157,14 @@ void test_recved_callback(uint32_t index, void *object)
 
 void test_ordered_recved_callback(uint32_t index, void *object)
 {
-    if (index == 1000000)
+    if (index == 1000000 - 1)
     {
         std::chrono::steady_clock::time_point cur_time = std::chrono::steady_clock::now();
         std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(cur_time - start_time);
         printf("1000000 Packets Received\n");
         printf("Spends %d ms \n", (int)dur.count());
     }
-    else if (index < 1000000)
+    else if (index < 1000000 - 1)
     {
         // printf("received: %d \n", index);
     }
@@ -180,12 +186,12 @@ int32_t test_if_yield(void *obj)
 
 int main(int argc, char **argv, char **env)
 {
-    reliable_communication_sender_initialize(&g_sender, sizeof(g_sender_buffer) / sizeof(uint32_t), g_sender_buffer, test_get_received_response, test_send_packet);
-    reliable_communication_receiver_initialize(&g_receiver, sizeof(g_receiver_buffer) / sizeof(uint32_t), g_receiver_buffer, test_send_response, test_receive_packet, test_recved_callback, test_ordered_recved_callback);
+    reliable_communication_sender_initialize(&g_sender, sizeof(g_sender_buffer) / sizeof(uint32_t), g_sender_buffer, test_get_received_response, test_send_packet, nullptr, nullptr);
+    reliable_communication_receiver_initialize(&g_receiver, sizeof(g_receiver_buffer) / sizeof(uint32_t), g_receiver_buffer, test_send_response, test_receive_packet, nullptr, nullptr, test_recved_callback, test_ordered_recved_callback);
 
     std::thread(
         [](){
-            reliable_communication_receiver_receive(&g_receiver, NULL);
+            reliable_communication_receiver_receive(&g_receiver, NULL, nullptr, nullptr);
         }
     ).detach();
 
@@ -195,9 +201,17 @@ int main(int argc, char **argv, char **env)
     while (1)
     {
         reliable_communication_sender_send_packets(&g_sender, NULL, test_if_yield, NULL);
-        printf("loop %d\n", i);
         i++;
+
+        if (g_sender.recorder.first_packet_index == 1000000)
+        {
+            break;
+        }
     }
+
+    printf("Send Finished\n");
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
 
     return 0;
 }

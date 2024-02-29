@@ -5,7 +5,43 @@ extern "C"
 {
 #endif
 
-enum reliable_communication_error_t reliable_communication_sender_initialize(struct reliable_communication_sender_t *sender, size_t buffer_size, void *buffer, reliable_communication_get_receiver_received_response_func_t get_recved_response, reliable_communication_send_packet_func_t send_packet)
+enum reliable_communication_error_t reliable_communication_sender_reset(struct reliable_communication_sender_t *sender, void *object, reliable_communication_yield_condition_func_t yield_condition_func, void *yield_condition_object)
+{
+    enum reliable_communication_error_t func_res = reliable_communication_error_no;
+    uint32_t response = 0;
+
+    func_res = reliable_communication_reset_recorder(&sender->recorder);
+    if (func_res != reliable_communication_error_no)
+    {
+        goto func_end;
+    }
+
+    while (1)
+    {
+        if (yield_condition_func)
+        {
+            int32_t if_yield = yield_condition_func(yield_condition_object);
+            if (if_yield)
+            {
+                func_res = reliable_communication_error_not_completed;
+                break;
+            }
+        }
+
+        enum reliable_communication_error_t reset_send_res = sender->send_reset(object);
+
+        enum reliable_communication_error_t reset_response_res = sender->get_reset_response(&response, object);
+        if (reset_response_res == reliable_communication_error_got_one_response)
+        {
+            break;
+        }
+    }
+
+func_end:
+    return func_res;
+}
+
+enum reliable_communication_error_t reliable_communication_sender_initialize(struct reliable_communication_sender_t *sender, size_t buffer_size, void *buffer, reliable_communication_get_receiver_received_response_func_t get_recved_response, reliable_communication_send_packet_func_t send_packet, reliable_communication_send_reset_func_t send_reset_func, reliable_communication_get_receiver_reset_response_func_t get_reset_response_func)
 {
     enum reliable_communication_error_t func_res = reliable_communication_error_no;
 
@@ -17,6 +53,8 @@ enum reliable_communication_error_t reliable_communication_sender_initialize(str
 
     sender->get_recved_response = get_recved_response;
     sender->send_packet = send_packet;
+    sender->send_reset = send_reset_func;
+    sender->get_reset_response = get_reset_response_func;
 
 func_end:
     return func_res;
@@ -91,7 +129,7 @@ enum reliable_communication_error_t reliable_communication_sender_send_packets(s
                 err = sender->send_packet(sender->recorder.first_packet_index + i, object);
                 if (err == reliable_communication_error_overflow)
                 {
-                    end_index = i;
+                    end_index = sender->recorder.first_packet_index + i;
                     break;
                 }
                 else if (err != reliable_communication_error_no)

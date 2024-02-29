@@ -23,6 +23,7 @@ enum reliable_communication_error_t
     reliable_communication_error_got_one_packet,
     reliable_communication_error_got_one_response,
     reliable_communication_error_end,
+    reliable_communication_error_not_completed,
 };
 
 enum reliable_communication_packet_record_status_t
@@ -45,6 +46,7 @@ enum reliable_communication_error_t reliable_communication_walk(struct reliable_
 enum reliable_communication_error_t reliable_communication_record_received(struct reliable_communication_t *ins, uint32_t index);
 enum reliable_communication_error_t reliable_communication_get_record(struct reliable_communication_t *ins, uint32_t index, uint32_t *record_data);
 enum reliable_communication_error_t reliable_communication_get_buffer_size(struct reliable_communication_t *ins, size_t *buffer_size);
+enum reliable_communication_error_t reliable_communication_reset_recorder(struct reliable_communication_t *recorder);
 
 typedef int32_t (*reliable_communication_yield_condition_func_t)(void *object);
 
