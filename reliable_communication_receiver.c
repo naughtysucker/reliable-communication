@@ -80,18 +80,35 @@ enum reliable_communication_error_t reliable_communication_receiver_receive(stru
 				uint32_t record_data;
 				err = reliable_communication_get_record(&receiver->recorder, index, &record_data);
                 assert(err == reliable_communication_error_no);
+                uint32_t have_error = 0;
 				if (record_data == reliable_communication_packet_have_not_received)
 				{
 					if (receiver->callback)
 					{
-						receiver->callback(index, object);
+                        enum reliable_communication_callback_result_t callback_result;
+						callback_result = receiver->callback(index, object);
+                        if (callback_result != reliable_communication_callback_result_ok)
+                        {
+                            response_data = reliable_communication_response_abort;
+                            have_error = 1;
+                        }
 					}
 				}
-                err = reliable_communication_record_received(&receiver->recorder, index);
-                assert(err == reliable_communication_error_no);
+                if (!have_error)
+                {
+                    err = reliable_communication_record_received(&receiver->recorder, index);
+                    assert(err == reliable_communication_error_no);
+                }
 
                 err = reliable_communication_walk(&receiver->recorder, receiver->order_callback, object);
-                assert(err == reliable_communication_error_no);
+                if (err == reliable_communication_error_callback_execute_failed)
+                {
+                    response_data = reliable_communication_response_abort;
+                }
+                else 
+                {
+                    assert(err == reliable_communication_error_no);
+                }
             }
             receiver->send_response(index, response_data, object);
         }

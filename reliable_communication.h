@@ -24,6 +24,8 @@ enum reliable_communication_error_t
     reliable_communication_error_got_one_response,
     reliable_communication_error_end,
     reliable_communication_error_not_completed,
+    reliable_communication_error_receiver_aborts,
+    reliable_communication_error_callback_execute_failed,
 };
 
 enum reliable_communication_packet_record_status_t
@@ -36,10 +38,17 @@ enum reliable_communication_response_t
 {
     reliable_communication_response_received,
     reliable_communication_response_overflow,
+    reliable_communication_response_abort,
 };
 
-typedef void (*reliable_communication_new_packet_received_callback)(uint32_t index, void *object);
-typedef void (*reliable_communication_new_packet_received_order_callback)(uint32_t index, void *object);
+enum reliable_communication_callback_result_t
+{
+    reliable_communication_callback_result_ok,
+    reliable_communication_callback_result_failed,
+};
+
+typedef enum reliable_communication_callback_result_t (*reliable_communication_new_packet_received_callback)(uint32_t index, void *object);
+typedef enum reliable_communication_callback_result_t (*reliable_communication_new_packet_received_order_callback)(uint32_t index, void *object);
 
 enum reliable_communication_error_t reliable_communication_fifo_initialize(struct reliable_communication_t *ins, size_t buffer_size, void *buffer);
 enum reliable_communication_error_t reliable_communication_walk(struct reliable_communication_t *ins, reliable_communication_new_packet_received_order_callback order_callback, void *object);
